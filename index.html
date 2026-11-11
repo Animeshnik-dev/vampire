@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>🎃 Vampire Obfuscator | Secure Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Creepster&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="fog"></div>
+<div class="app">
+  <header>
+    <div class="brand">🎃 Vampire <span>Obfuscator</span></div>
+    <div class="controls">
+      {% if user %}
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <img src="{{ user.avatar }}" style="width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--accent);">
+          <a href="http://127.0.0.1:5000/logout" class="ghost" style="text-decoration:none; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); color: var(--dim);">Logout</a>
+        </div>
+      {% else %}
+        <a href="http://127.0.0.1:5000/login" style="background: var(--accent); border: none; color: #000; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; box-shadow: 0 0 10px var(--accent);">Login with Discord</a>
+      {% endif %}
+      
+      <input id="seed" type="text" placeholder="Seed (optional)">
+      <button id="go">Obfuscate</button>
+      <button id="copy" class="ghost">Copy</button>
+      <button id="download" class="ghost">Download</button>
+    </div>
+  </header>
+  <main>
+    <section class="panel">
+      <div class="dropzone" id="dropzone">
+        <div class="icon">🦇</div>
+        <div class="dz-title">Drop your script file here</div>
+        <div class="dz-sub">or click to browse local files</div>
+        <input type="file" id="file" hidden>
+      </div>
+      <textarea id="source" spellcheck="false" placeholder="-- paste Luau source here&#10;print('hello')"></textarea>
+    </section>
+    <section class="panel">
+      <div class="output-head">
+        <span id="status">// Protected environment required...</span>
+        <span id="meta" class="meta"></span>
+      </div>
+      <textarea id="output" readonly spellcheck="false" placeholder="// Obfuscated output will appear here"></textarea>
+    </section>
+  </main>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+const src = $("#source"), out = $("#output"), status = $("#status"), meta = $("#meta");
+const dz = $("#dropzone"), file = $("#file");
+
+dz.addEventListener("click", () => file.click());
+dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("active"); });
+dz.addEventListener("dragleave", () => dz.classList.remove("active"));
+dz.addEventListener("drop", e => {
+  e.preventDefault(); dz.classList.remove("active");
+  if (e.dataTransfer.files.length) readFile(e.dataTransfer.files[0]);
+});
+file.addEventListener("change", () => { if (file.files.length) readFile(file.files[0]); });
+
+function readFile(f) {
+  const r = new FileReader();
+  r.onload = () => { src.value = r.result; status.textContent = "// Loaded " + f.name; };
+  r.readAsText(f);
+}
+
+$("#go").addEventListener("click", async () => {
+  const body = { source: src.value, seed: $("#seed").value };
+  if (!body.source.trim()) { status.textContent = "// Error: Nothing to obfuscate"; return; }
+  status.textContent = "// Verifying exploit environment (Xeno / Project Real)...";
+  try {
+    const res = await fetch("http://127.0.0.1:5000/obfuscate", {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "X-Exploit-Environment": "Xeno" 
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (res.status === 401) { status.textContent = "// Error: Login required!"; window.location.href = "http://127.0.0.1:5000/login"; return; }
+    if (res.status === 403) { status.textContent = "// Error: " + data.error; return; }
+    if (data.error) { status.textContent = "// Error: " + data.error; return; }
+    out.value = data.output;
+    status.textContent = "// Done! Protected successfully!";
+    meta.textContent = "seed=" + data.seed + " | key=" + data.key;
+  } catch (e) {
+    status.textContent = "// Network error: Make sure local app.py is running!";
+  }
+});
+
+$("#copy").addEventListener("click", () => {
+  if (!out.value) return;
+  navigator.clipboard.writeText(out.value);
+  status.textContent = "// Copied!";
+});
+
+$("#download").addEventListener("click", () => {
+  if (!out.value) return;
+  const blob = new Blob([out.value], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "obfuscated.lua";
+  a.click();
+});
+</script>
+</body>
+</html>
