@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>🎃 Vampire Obfuscator | Secure Edition</title>
 <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="static/style.css">
 </head>
 <body>
 <div class="fog"></div>
@@ -12,14 +12,8 @@
   <header>
     <div class="brand">🎃 Vampire <span>Obfuscator</span></div>
     <div class="controls">
-      {% if user %}
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <img src="{{ user.avatar }}" style="width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--accent);">
-          <a href="http://127.0.0.1:5000/logout" class="ghost" style="text-decoration:none; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); color: var(--dim);">Logout</a>
-        </div>
-      {% else %}
-        <a href="http://127.0.0.1:5000/login" style="background: var(--accent); border: none; color: #000; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; box-shadow: 0 0 10px var(--accent);">Login with Discord</a>
-      {% endif %}
+      <!-- Кнопка входа через твой локальный Flask-сервер авторизации -->
+      <a href="http://127.0.0.1:5000/login" style="background: var(--accent); border: none; color: #000; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; box-shadow: 0 0 10px var(--accent);">Login with Discord</a>
       
       <input id="seed" type="text" placeholder="Seed (optional)">
       <button id="go">Obfuscate</button>
